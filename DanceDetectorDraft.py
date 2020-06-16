@@ -2,10 +2,10 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-cam = cv2.VideoCapture('Bees10.mov')
+cap = cv2.VideoCapture('Bees10.mov')
 
-width = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
-height = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
+width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
 font                   = cv2.FONT_HERSHEY_SIMPLEX
 bottomLeftCornerOfText = (10,500)
@@ -23,7 +23,7 @@ rois = list(np.arange(110,120,1)) + list(np.arange(260,270,1))
 counter = 0
 while True:
     counter += 1
-    ret, frame = cam.read()
+    ret, frame = cap.read()
     frame = frame[300:600, 700:1050]
     
     # Our operations on the frame come here
@@ -61,6 +61,6 @@ while True:
     if counter in rois:
         saved_frames.append(frame_diff)
     
-cam.release()
+cap.release()
 cv2.destroyAllWindows()
 cv2.waitKey(1)
