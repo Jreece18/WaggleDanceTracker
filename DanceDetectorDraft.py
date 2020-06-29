@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-## Function to find large child contours in the frame and return the x,y coordinates and the frame in which the contour was found
+# Find large child contours in the frame and return the x,y coordinates and the frame in which the contour was found
 def findChildContours(frame, frame_count):
     contours, hierarchy = cv2.findContours(frame, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
     child_contours = []
