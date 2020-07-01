@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+from sklearn.cluster import DBSCAN
+
 
 # Find large child contours in the frame and return the x,y coordinates and the frame in which the contour was found
 def findChildContours(frame, frame_count):
@@ -26,6 +29,9 @@ def findChildContours(frame, frame_count):
             size.append(cv2.contourArea(c))
     frame_counts = [frame_count] * len(x_coords) # Which frame these contours found in
     return list(zip(x_coords, y_coords, frame_counts)) # Zip lists to list of tuples # Size removed
+
+
+### Motion Detector ### 
 
 cap = cv2.VideoCapture('Bees10.mov')
 
@@ -97,4 +103,42 @@ while True:
     
 cap.release()
 cv2.destroyAllWindows()
-cv2.waitKey(1);
+cv2.waitKey(1)
+
+### ROI Clustering ###
+
+# Convert all waggle like activity to DF
+waggle_df = pd.DataFrame(potential_waggles, columns=['x', 'y', 'frame'])
+# Clustering algoirithm
+X = (potential_waggles)
+clust1 = DBSCAN(eps=30, min_samples=8).fit(X)
+waggle_df.loc[:, 'Cluster'] = clust1.labels_
+
+# Manually calculate 'centroid' for each cluster (may be inaccurate if not convex)
+# Code influenced by: https://stackoverflow.com/questions/23020659/fastest-way-to-calculate-the-centroid-of-a-set-of-coordinate-tuples-in-python-wi
+cluster_labels = list(np.unique(clust1.labels_))
+centroids = []
+for i in cluster_labels:
+    df = waggle_df[waggle_df['Cluster'] == i]
+    l = len(df)
+    x, y, z = np.sum(df.x), np.sum(df.y), np.sum(df.frame)
+    centroid = (x/l, y/l, z/l)
+    centroids.append(centroid)
+
+# Create df of centroids list
+roi_df = pd.DataFrame(centroids, columns=['x','y','frame'])
+# Create x, y and frame range of roi
+roi_df.loc[:, 'first frame'] = roi_df.frame - 30
+roi_df.loc[:, 'final frame'] = roi_df.frame + 30
+roi_df.loc[:, 'x0'] = roi_df.x - 100
+roi_df.loc[:, 'x1'] = roi_df.x + 100
+roi_df.loc[:, 'y0'] = roi_df.y - 100
+roi_df.loc[:, 'y1'] = roi_df.y + 100
+# Convert floats to int
+roi_df = roi_df.astype(int)
+# Negative frames if centroids are at start of video. Make 1 
+roi_df.loc[roi_df['first frame'] < 0, 'first frame'] = 1
+# Save first frames to a list for below while loop
+roi_frames = roi_df['first frame'].values.tolist()
+
+
