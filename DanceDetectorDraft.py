@@ -142,3 +142,35 @@ roi_df.loc[roi_df['first frame'] < 0, 'first frame'] = 1
 roi_frames = roi_df['first frame'].values.tolist()
 
 
+### Save Cropped Footage to File ###
+
+prefix = 'Bees10'
+fourcc = cv2.VideoWriter_fourcc(*'MP4V')
+# For each roi in df, Run footage at 'first frame' and save to file
+for i, roi in enumerate(roi_frames):
+    cap.set(1, roi)
+    data = roi_df.iloc[i, :]
+    filename = '{}-{}.mp4'.format(prefix, str(i))
+    out = cv2.VideoWriter(filename, fourcc, 5.0, (width, height))
+    
+    counter = roi
+    while True:
+        counter += 1
+        ret, frame = cap.read()
+        if counter >= data['final frame']:
+            cap.release()
+            break
+        frame = frame[data.x0:data.x1, data.y0:data.y1]
+        cv2.imshow('Frame', frame)
+        cv2.waitKey(40)
+        
+        out.write(frame)
+    
+    out.release()
+    
+    print('ROI {} saved to file'.format(str(i)))
+    # For testing...
+    if i == 10:
+        break
+
+cap.release()
