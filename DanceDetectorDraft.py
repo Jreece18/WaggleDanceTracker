@@ -111,11 +111,12 @@ cv2.waitKey(1)
 waggle_df = pd.DataFrame(potential_waggles, columns=['x', 'y', 'frame'])
 # Clustering algoirithm
 X = (potential_waggles)
-clust1 = DBSCAN(eps=30, min_samples=8).fit(X)
+clust1 = DBSCAN(eps=25, min_samples=12).fit(X)
 waggle_df.loc[:, 'Cluster'] = clust1.labels_
 
-# Manually calculate 'centroid' for each cluster (may be inaccurate if not convex)
-# Code influenced by: https://stackoverflow.com/questions/23020659/fastest-way-to-calculate-the-centroid-of-a-set-of-coordinate-tuples-in-python-wi
+# Manually calculate 'centroid' for each cluster
+# DBSCAN does not have centroids, but this is an easy way to discover ROIs
+# Code influecned by: https://stackoverflow.com/questions/23020659/fastest-way-to-calculate-the-centroid-of-a-set-of-coordinate-tuples-in-python-wi
 cluster_labels = list(np.unique(clust1.labels_))
 centroids = []
 for i in cluster_labels:
@@ -128,18 +129,20 @@ for i in cluster_labels:
 # Create df of centroids list
 roi_df = pd.DataFrame(centroids, columns=['x','y','frame'])
 # Create x, y and frame range of roi
-roi_df.loc[:, 'first frame'] = roi_df.frame - 30
-roi_df.loc[:, 'final frame'] = roi_df.frame + 30
-roi_df.loc[:, 'x0'] = roi_df.x - 100
-roi_df.loc[:, 'x1'] = roi_df.x + 100
-roi_df.loc[:, 'y0'] = roi_df.y - 100
-roi_df.loc[:, 'y1'] = roi_df.y + 100
+roi_df.loc[:, 'first frame'] = roi_df.frame - 150
+roi_df.loc[:, 'final frame'] = roi_df.frame + 150
+roi_df.loc[:, 'x0'] = roi_df.x - 200
+roi_df.loc[:, 'x1'] = roi_df.x + 200
+roi_df.loc[:, 'y0'] = roi_df.y - 200
+roi_df.loc[:, 'y1'] = roi_df.y + 200
 # Convert floats to int
 roi_df = roi_df.astype(int)
 # Negative frames if centroids are at start of video. Make 1 
 roi_df.loc[roi_df['first frame'] < 0, 'first frame'] = 1
+
 # Save first frames to a list for below while loop
 roi_frames = roi_df['first frame'].values.tolist()
+
 
 
 ### Save Cropped Footage to File ###
