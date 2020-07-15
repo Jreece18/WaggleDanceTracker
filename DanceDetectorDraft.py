@@ -143,7 +143,25 @@ roi_df.loc[roi_df['first frame'] < 0, 'first frame'] = 1
 # Save first frames to a list for below while loop
 roi_frames = roi_df['first frame'].values.tolist()
 
+### Keep ROI's within video's frame
 
+# Get pixel overlaps of each ROI (based off x/y 0/1) as positive integer
+x1_overlap = roi_df.loc[roi_df['x1'] > width, 'x1'] - width
+x0_overlap = - roi_df.loc[roi_df['x0'] < 0, 'x0']
+y1_overlap = roi_df.loc[roi_df['y1'] > height, 'y1'] - height
+y0_overlap = - roi_df.loc[roi_df['y0'] < 0, 'y0'] + 1
+
+# Move x roi within video boundaries
+roi_df.loc[roi_df['x1'] > width, 'x0'] -= x1_overlap
+roi_df.loc[roi_df['x1'] > width, 'x1'] = width
+roi_df.loc[roi_df['x0'] < 0, 'x1'] += x0_overlap
+roi_df.loc[roi_df['x0'] < 0, 'x0'] = 0
+
+# Move y roi within video boundaries
+roi_df.loc[roi_df['y1'] > height, 'y0'] -= y1_overlap
+roi_df.loc[roi_df['y1'] > height, 'y1'] = 0
+roi_df.loc[roi_df['y0'] < 0, 'y1'] += y0_overlap
+roi_df.loc[roi_df['y0'] < 0, 'y0'] = 0 
 
 ### Save Cropped Footage to File ###
 
