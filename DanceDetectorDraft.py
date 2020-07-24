@@ -57,12 +57,12 @@ potential_waggles = [] # List to save potential waggles
 while True:
     counter += 1
     ret, frame = cap.read()
-#    frame = frame[300:600, 700:1050]
+    if ret is False:
+        break
 
-    # Our operations on the frame come here
+    # Threshold Image
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     gray_blur = cv2.GaussianBlur(gray, (21,21), 0)
-    
     thresh = cv2.threshold(gray_blur, 108, 230, cv2.THRESH_BINARY)[1]
     
     # If first frame, set current frame as prev_frame
@@ -71,7 +71,6 @@ while True:
     current_frame = thresh
 
     frame_diff = cv2.absdiff(current_frame, prev_frame) # Background Subtraction    
-    
     _, hierarchy = cv2.findContours(frame_diff, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
     # Catch blank images and skip frame
     if hierarchy is None:
@@ -109,13 +108,13 @@ cv2.waitKey(1)
 
 # Convert all waggle like activity to DF
 waggle_df = pd.DataFrame(potential_waggles, columns=['x', 'y', 'frame'])
-# Clustering algoirithm
+# Clustering algorithm
 X = (potential_waggles)
 clust1 = DBSCAN(eps=25, min_samples=12).fit(X)
 waggle_df.loc[:, 'Cluster'] = clust1.labels_
 
 # Manually calculate 'centroid' for each cluster
-# DBSCAN does not have centroids, but this is an easy way to discover ROIs
+# DBSCAN does not produce centroids, but this is an easy way to discover ROIs
 # Code influecned by: https://stackoverflow.com/questions/23020659/fastest-way-to-calculate-the-centroid-of-a-set-of-coordinate-tuples-in-python-wi
 cluster_labels = list(np.unique(clust1.labels_))
 centroids = []
@@ -169,6 +168,7 @@ prefix = 'Bees10'
 fourcc = cv2.VideoWriter_fourcc(*'MP4V')
 # For each roi in df, Run footage at 'first frame' and save to file
 for i, roi in enumerate(roi_frames):
+    # Begin footage from 'first frame' in each Cluster
     cap.set(1, roi)
     data = roi_df.iloc[i, :]
     filename = '{}-{}.mp4'.format(prefix, str(i))
@@ -183,7 +183,7 @@ for i, roi in enumerate(roi_frames):
             break
         frame = frame[data.x0:data.x1, data.y0:data.y1]
         cv2.imshow('Frame', frame)
-        cv2.waitKey(40)
+        cv2.waitKey(1)
         
         out.write(frame)
     
