@@ -120,13 +120,15 @@ cluster_labels = list(np.unique(clust1.labels_))
 centroids = []
 for i in cluster_labels:
     df = waggle_df[waggle_df['Cluster'] == i]
+    # Start indicates the location of start of a waggle run
+    start = df.iloc[0, 0:3]
     l = len(df)
     x, y, z = np.sum(df.x), np.sum(df.y), np.sum(df.frame)
-    centroid = (x/l, y/l, z/l)
+    centroid = (x/l, y/l, z/l, start[0], start[1], start[2])
     centroids.append(centroid)
 
 # Create df of centroids list
-roi_df = pd.DataFrame(centroids, columns=['x','y','frame'])
+roi_df = pd.DataFrame(centroids, columns=['x','y','frame', 'start_x', 'start_y', 'start_frame'])
 # Create x, y and frame range of roi
 roi_df.loc[:, 'first frame'] = roi_df.frame - 150
 roi_df.loc[:, 'final frame'] = roi_df.frame + 150
@@ -163,7 +165,6 @@ roi_df.loc[roi_df['y0'] < 0, 'y1'] += y0_overlap
 roi_df.loc[roi_df['y0'] < 0, 'y0'] = 0 
 
 ### Save Cropped Footage to File ###
-
 prefix = 'Bees10'
 fourcc = cv2.VideoWriter_fourcc(*'MP4V')
 # For each roi in df, Run footage at 'first frame' and save to file
@@ -195,3 +196,6 @@ for i, roi in enumerate(roi_frames):
         break
 
 cap.release()
+
+### Save ROI DF
+roi_df.to_csv('WaggleDetections-{}'.format(prefix))
