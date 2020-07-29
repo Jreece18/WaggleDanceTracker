@@ -220,3 +220,90 @@ def expandBox(img, bbox):
         print(bbox)
         contour, thresh = findFullContour(img, prev_bbox)
     return bbox, contour, thresh
+
+### Initialise Traker 
+    
+img = cv2.imread('test1.jpg')
+mask = createMask(img)
+x, y = (df.loc[0, 'x'], df.loc[0, 'y'])
+contour, thresh = findFullContourPoints(img, x, y)
+rect, box = getFittedBox(contour)
+bbox = rotatedBoxConverter(box)
+
+tracker = cv2.TrackerCSRT_create()
+cap = cv2.VideoCapture('TestWaggle.mp4')
+cap.set(1, 4)
+ret, frame = cap.read()
+ret = tracker.init(frame, bbox)
+prev_bbox = bbox
+roi = []
+
+### Run Tracker
+
+counter = 0 # Frame counter
+total = 0 # Cumulative sum of bounding box area
+while True:
+    counter += 1
+    ret, frame = cap.read()
+    if ret == False:
+        break
+    
+    ret, bbox = tracker.update(frame)
+    prev_cntr = boxCentre(prev_bbox)
+    total, avg = avgArea(bbox, total, counter) # Track avg size of bounding box
+    found, prev_bbox = anchorBox(bbox, prev_bbox, avg)
+
+    # If tracker has lost the bee
+    if found is False:
+        # Find largest contour in previous frame ROI
+        contour, thresh = findFullContour(frame, prev_bbox)
+        x, y = getContourMoment(contour)
+        # If contour is > 2x avg bounding box, 
+        if cv2.contourArea(contour) > avg*2:
+            contour, thresh = findFullContourPoints(frame, x, y)
+        # If contour not found, or bounding box too small, expand box and find contour
+        if contour is None or (prev_bbox[2]*prev_bbox[3]) < avg:
+            print('Expand')
+            bbox, contour, thresh = expandBox(frame, prev_bbox)
+        else:
+            rect, box = getFittedBox(contour)
+            bbox = rotatedBoxConverter(box)
+
+        prev_bbox = bbox
+        tracker = cv2.TrackerCSRT_create()
+        ret = tracker.init(frame, bbox)
+    
+    gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+    gray = cv2.equalizeHist(gray)
+    thresh = cv2.threshold(gray, 180, 220, cv2.THRESH_BINARY)[1]
+    
+    # Tracking success    
+    if ret:
+        p1 = (int(bbox[0]), int(bbox[1]))
+        p2 = (int(bbox[0] + bbox[2]), int(bbox[1] + bbox[3]))
+        cv2.rectangle(frame, p1, p2, (255, 0, 0), 2, 1)
+        cv2.rectangle(thresh, p1, p2, (255, 0, 0), 2, 1)
+    else:
+        cv2.putText(frame, "Tracking failure detected", (100, 80), cv2.FONT_HERSHEY_SIMPLEX, 0.75, (0, 0, 255), 2)
+        
+    cv2.imshow("Tracking", frame)
+    cv2.imshow("Threshold", thresh)
+    cv2.waitKey(1)
+    if cv2.waitKey(200) & 0xFF == ord('q'):
+        break
+
+    if counter > 120:
+        pass
+        #break
+    if counter in [104, 105, 106, 107]:
+        roi.append([frame, thresh, prev_bbox, contour])
+        print(bbox)
+    
+    cntr = boxCentre(bbox)
+    traceMask(mask, prev_cntr, cntr)
+    print('Cntr coords {} \ {}'.format(prev_cntr, cntr))
+    
+
+cap.release()
+cv2.destroyAllWindows()
+cv2.waitKey(1)
