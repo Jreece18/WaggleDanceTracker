@@ -115,7 +115,7 @@ waggle_df.loc[:, 'Cluster'] = clust1.labels_
 
 # Manually calculate 'centroid' for each cluster
 # DBSCAN does not produce centroids, but this is an easy way to discover ROIs
-# Code influecned by: https://stackoverflow.com/questions/23020659/fastest-way-to-calculate-the-centroid-of-a-set-of-coordinate-tuples-in-python-wi
+# Code influenced by: https://stackoverflow.com/questions/23020659/fastest-way-to-calculate-the-centroid-of-a-set-of-coordinate-tuples-in-python-wi
 cluster_labels = list(np.unique(clust1.labels_))
 centroids = []
 for i in cluster_labels:
@@ -144,7 +144,7 @@ roi_df.loc[roi_df['first frame'] < 0, 'first frame'] = 1
 # Save first frames to a list for below while loop
 roi_frames = roi_df['first frame'].values.tolist()
 
-### Keep ROI's within video's frame
+### Keep ROI's within video's boundaries
 
 # Get pixel overlaps of each ROI (based off x/y 0/1) as positive integer
 x1_overlap = roi_df.loc[roi_df['x1'] > width, 'x1'] - width
@@ -179,6 +179,7 @@ for i, roi in enumerate(roi_frames):
     while True:
         counter += 1
         ret, frame = cap.read()
+        # Release at end of ROI
         if counter >= data['final frame']:
             cap.release()
             break
