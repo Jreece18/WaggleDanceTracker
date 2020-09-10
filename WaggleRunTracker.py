@@ -113,7 +113,7 @@ def createMask(img):
 def anchorInterpolation(bbox, fx, fy, counter):
     # Interpolated bbox
     fx0, fy0 = int(fx(counter)), int(fy(counter))
-    x0, y0, x1, y1 = fx0-25, fy0-25, fx0+25, fy0+25
+    x0, y0, x1, y1 = fx0-30, fy0-30, fx0+30, fy0+30
     
     x, y, w, h = bbox
     
@@ -298,30 +298,6 @@ for i in range(len(df['Cluster'].unique())):
                     break
             rect, box = getFittedBox(contour)
 
-
-    #     if found is not True:
-    #         print('Found is False')
-    #         contour = roi_contour
-    #         centre = getContourMoment(contour)
-    #         bbox = centre[0]-15, centre[1]-15, 30, 30
-    #         contour = findROIContour(opening, bbox)
-    #         rect, box = getFittedBox(contour)
-    #         bbox = rotatedBoxConverter(box)
-
-#         """ This probably needs changing """
-#         if bbox[2]*bbox[3] > avg*1.5:
-#             print('Too Large')
-#             # Re-centre ROI to contour, and get bbox on cropped contour
-#             x, y = centre 
-#             bbox = x-15, y-15, 30, 30
-#             contour = findROIContour(opening, bbox)
-#             low = thresh_min
-#             while contour is None or cv2.contourArea(contour) <= 80: # or too small
-#                 print('Contour still none')
-#                 low -= 5
-#                 thresh = cv2.threshold(gray, low, thresh_max, cv2.THRESH_BINARY)[1]
-#                 opening[bbox[1]:bbox[1]+bbox[3], bbox[0]:bbox[0]+bbox[2]] = thresh[bbox[1]:bbox[1]+bbox[3], bbox[0]:bbox[0]+bbox[2]]
-#                 contour = findROIContour(opening, bbox)
             
             rect, box = getFittedBox(contour)
             print(rect[-1])
@@ -363,8 +339,8 @@ for i in range(len(df['Cluster'].unique())):
 
 # Remove any waggle runs that last < 0.5s
 # Taken from: https://stackoverflow.com/questions/32918506/pandas-how-to-filter-for-items-that-occur-more-than-once-in-a-dataframe
-fps = 25
-final_df = final_df[final_df['cluster'].isin((final_df['cluster'].value_counts() > fps/2).index)]
+# fps = 25
+# final_df = final_df[final_df['cluster'].isin((final_df['cluster'].value_counts() > fps/2).index)]
 
 # Save output df to pickle file
 final_df.to_pickle('WaggleRuns.pkl')
