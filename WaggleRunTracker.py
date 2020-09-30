@@ -1,7 +1,5 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
 import cv2
 from scipy import interpolate
 
@@ -99,12 +97,6 @@ def moveDirection(prev_bbox, bbox):
     movement = (xd, yd)
     return movement
 
-def erodeAroundROI(frame, bbox):
-    x, y, w, h = bbox
-    save = frame[y:y+h, x:x+w]
-    kernel = np.ones(3,3, np.uint8)
-    frame = cv2.erode(frame, kernel, iterations = 3)
-
 def createMask(img):
     mask = np.zeros((img.shape[0], img.shape[1], 3), np.uint8)
     mask.fill(255)
@@ -131,7 +123,7 @@ df = pd.read_pickle(path)
 df.drop('index', axis=1, inplace=True)
 
 # Create output dataframe
-final_df = pd.DataFrame(columns=['x', 'y', 'frame', 'bbox', 'size', 'angle', 'euclid', 'cluster']) 
+final_df = pd.DataFrame(columns=['x', 'y', 'frame', 'contour', 'bbox', 'size', 'angle', 'euclid', 'cluster']) 
 
 for i in range(len(df['Cluster'].unique())):
     clust = df[df['Cluster'] == i].reset_index()
@@ -176,9 +168,6 @@ for i in range(len(df['Cluster'].unique())):
             print('Contour None')
             contour = findROIContour(thresh, bbox)
             opening = thresh # For findFullContour
-        # plt.figure(figsize=(20,10))
-        # cv2.drawContours(opening, contour, -1, (255,0,0), 2, 1)
-        # plt.imshow(opening)
         centre = getContourMoment(contour)
         contour = findFullContour(opening, centre)
     except:
@@ -199,7 +188,7 @@ for i in range(len(df['Cluster'].unique())):
 
     rois = []
 
-    while counter <= end:
+    while counter < end:
         counter += 1 
         ret, frame = cap.read()
 
@@ -215,6 +204,7 @@ for i in range(len(df['Cluster'].unique())):
         if counter not in missing:
             print('In DF')
             waggle = clust[clust['frame']==counter].reset_index()
+            print(counter, start, end)
             x, y = waggle.loc[0, 'x'], waggle.loc[0, 'y']
             bbox = x-15, y-15, 30, 30
             print(prev_bbox, bbox)
@@ -274,7 +264,7 @@ for i in range(len(df['Cluster'].unique())):
             if low < 60:
                 break
         rect, box = getFittedBox(contour)
-        bbox = rotatedBoxConverter(box)
+        #bbox = rotatedBoxConverter(box)
 
         # Compare bbox to interpolated bbox
         found, bbox = anchorInterpolation(bbox, fx, fy, counter)
@@ -324,7 +314,7 @@ for i in range(len(df['Cluster'].unique())):
         euclid = np.sqrt(np.square(centre[0] - prev_centre[0]) + np.square(centre[1] - prev_centre[1]))
 
         # Fill output df
-        final_df.loc[len(final_df)] = [centre[0], centre[1], counter, bbox, size, angle, euclid, cluster]
+        final_df.loc[len(final_df)] = [centre[0], centre[1], counter, contour, bbox, size, angle, euclid, cluster]
 
         movement = moveDirection(prev_bbox, bbox) # Track direction of box movement
         prev_centre = centre
