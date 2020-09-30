@@ -1,8 +1,6 @@
 import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
-import cv2
+
 
 waggle_df = pd.read_pickle('WaggleDetections-Bees10.pkl')
 # Sort by cluster and then frame so the dataset is ordered in blocks of clusters
@@ -49,7 +47,6 @@ df = waggle_df[waggle_df['index'].isin(final_idx)]
 # Check all duplicates removed
 dup = df[df.duplicated(subset=['frame', 'Cluster'], keep=False)]
 dup.head()
-
 
 # Calculate Euclidean Distance between each point in cluster and the next point
 for i in list(df['Cluster'].unique()):
