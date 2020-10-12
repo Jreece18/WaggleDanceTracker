@@ -78,8 +78,8 @@ waggles = pd.DataFrame(columns=['xmean', 'ymean', 'x0', 'y0', 'x1', 'y1', 'frame
 for i in df['cluster'].unique():
     clust = df[df['cluster'] == i]
     distance = getSlope(clust.x, clust.y, clust.frame)
-    waggles.loc[len(waggles)] = clust.x.mean(), clust.y.mean(),  clust.iloc[0, :]['x'], clust.iloc[0, :]['y'], clust.iloc[-1, :]['x'], \
-                                clust.iloc[-1, :]['y'], clust.frame.min(), clust.frame.max(), clust.frame.max() - clust.frame.min(), \
+    waggles.loc[len(waggles)] = clust.x.mean(), clust.y.mean(),  clust.x.min(), clust.y.min(), clust.x.max(), \
+                                clust.y.max(), clust.frame.min(), clust.frame.max(), clust.frame.max() - clust.frame.min(), \
                                 len(signal.find_peaks(clust.angle.values)[0]) / ((clust.frame.max() - clust.frame.min() + 1) / 60), \
                                 clust.cluster.max(), clust.angle.mean(), distance
 
