@@ -327,10 +327,5 @@ for i in range(len(df['Cluster'].unique())):
     cv2.waitKey(1)
     
 
-# Remove any waggle runs that last < 0.5s
-# Taken from: https://stackoverflow.com/questions/32918506/pandas-how-to-filter-for-items-that-occur-more-than-once-in-a-dataframe
-# fps = 25
-# final_df = final_df[final_df['cluster'].isin((final_df['cluster'].value_counts() > fps/2).index)]
-
 # Save output df to pickle file
 final_df.to_pickle('WaggleRuns.pkl')

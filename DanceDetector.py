@@ -47,16 +47,13 @@ lineType               = 2
 
 delay_time = 1 # Delay next loop for easier viewing
 prev_frame = None 
-# Save frames for isolated study
-saved_frames = [] 
-rois = list(np.arange(240,250))
-
 counter = 0 # Frame counter
 potential_waggles = [] # List to save potential waggles
 
 while True:
     counter += 1
     ret, frame = cap.read()
+    # Break when video ends
     if ret is False:
         break
 
@@ -98,9 +95,7 @@ while True:
     # q to quit
     if cv2.waitKey(delay_time) & 0xFF == ord('q'):
         break
-    
-    if counter in rois:
-        saved_frames.append(frame_diff)
+
     
 cap.release()
 cv2.destroyAllWindows()

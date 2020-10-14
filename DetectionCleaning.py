@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-
+prefix = 'Bees10'
 waggle_df = pd.read_pickle('WaggleDetections-Bees10.pkl')
 # Sort by cluster and then frame so the dataset is ordered in blocks of clusters
 waggle_df = waggle_df.sort_values(by=['Cluster', 'frame']).reset_index().drop(['index'], axis=1)
@@ -61,4 +61,4 @@ quant = df.euclid.quantile(0.9)
 df = df[df['euclid'] < quant]
 
 # Save cleaned dataset
-df.to_pickle('WaggleDetections-Bees10-Cleaned.pkl')
+df.to_pickle('WaggleDetections-{}-Cleaned.pkl'.format(prefix))
