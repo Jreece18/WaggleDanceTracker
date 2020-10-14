@@ -1,6 +1,4 @@
-import cv2 
 import numpy as np
-import matplotlib.pyplot as plt
 import pandas as pd
 import warnings
 from scipy import signal
@@ -269,5 +267,17 @@ for i in waggles['Dance'].unique():
     df = waggles[waggles['Dance']==i]
     print(df.cluster.values)
     long_dances_new.append(df.cluster.values)
-    
-    
+
+# Create direction quadrant feature
+waggles.loc[:, 'direction'] = waggles['distance'].apply(directionQuadrant)
+
+waggles.drop(['xmean', 'ymean', 'next_cluster', 'next_euclid', 'next_angle_diff'], axis=1, inplace=True)
+
+# Final dataset containing waggle runs summarised
+waggles.to_pickle('WaggleRunsFinal.pkl')
+
+# Final dataset containing Waggle Runs expanded
+detections = pd.read_pickle('WaggleRuns.pkl')
+dance_dict = pd.Series(waggles.Dance, index = waggles.cluster).to_dict()
+detections.loc[:, 'dance'] = detections['cluster'].map(dance_dict)
+detections.to_pickle('WaggleDetectionsFinal.pkl')
