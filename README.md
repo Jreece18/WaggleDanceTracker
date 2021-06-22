@@ -26,3 +26,5 @@ The code should be run in the following order:
 - Saves each waggle dance as a separate cropped video.
 - The bee is highlighted during the waggle run as a visual aid.
 
+
+Paper: https://www.biorxiv.org/content/10.1101/2020.11.21.354019v1
